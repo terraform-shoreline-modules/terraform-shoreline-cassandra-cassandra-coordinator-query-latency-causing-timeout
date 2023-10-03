@@ -1,0 +1,138 @@
+{
+  "name": "cassandra_coordinator_query_latency_causing_timeout",
+  "description": "This incident type refers to an issue where the coordinator node in a Cassandra database cluster experiences slow query latency, resulting in timeouts. The coordinator node is responsible for managing client connections and routing queries to the appropriate nodes in the cluster. If it is not able to process queries quickly enough, clients may experience timeouts and be unable to retrieve the data they need. This issue can be caused by a variety of factors, including high load on the cluster, network issues, or hardware problems.",
+  "params": [
+    {
+      "name": "PATH_TO_CASSANDRA_CONF",
+      "value": ""
+    },
+    {
+      "name": "KEYSPACE",
+      "value": ""
+    },
+    {
+      "name": "TABLE",
+      "value": ""
+    },
+    {
+      "name": "NEW_NODE_IP",
+      "value": ""
+    },
+    {
+      "name": "SEED_NODE_IP",
+      "value": ""
+    },
+    {
+      "name": "PARTITION_KEY",
+      "value": ""
+    },
+    {
+      "name": "NODETOOL_COMMAND",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Cassandra Coordinator Query Latency Causing Timeout\nThis incident type refers to an issue where the coordinator node in a Cassandra database cluster experiences slow query latency, resulting in timeouts. The coordinator node is responsible for managing client connections and routing queries to the appropriate nodes in the cluster. If it is not able to process queries quickly enough, clients may experience timeouts and be unable to retrieve the data they need. This issue can be caused by a variety of factors, including high load on the cluster, network issues, or hardware problems."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the status of the Cassandra cluster"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nodetool status`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## List the Cassandra keyspaces to see if there are any issues with replication"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `cqlsh -e \"DESC KEYSPACES\"`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## View the Cassandra system log to look for errors related to the coordinator node"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -n 100 /var/log/cassandra/system.log`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the load on the Cassandra coordinator node"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nodetool tpstats | grep \"coordinator\"`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the network latency between nodes in the Cassandra cluster"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nodetool getendpoints ${KEYSPACE} ${TABLE} ${PARTITION_KEY}`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## View the Cassandra nodetool output to see if there are any issues with the cluster"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nodetool ${NODETOOL_COMMAND}`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Increase the capacity of the Cassandra cluster by adding more nodes to distribute the load and reduce query latency."
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_configure_cassandra_cluster($PATH_TO_CASSANDRA_CONF, $NEW_NODE_IP, $SEED_NODE_IP)"
+    }
+  ]
+}
